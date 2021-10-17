@@ -1,1 +1,3 @@
 # warfacePinsActivation
+
+Как использовать
