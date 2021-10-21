@@ -23,7 +23,7 @@
 После запуска файла main.py вам будет необходимо ввести:
 
 1. Номер сервера(от 1 до 3, сверху вниз) ![image](https://user-images.githubusercontent.com/48911064/137755294-afae7966-47cb-4ced-a254-b0699806a85f.png) 
-2. <a href='#captchaguru'>Captchaguru</a> ключ
+2. <a href='#captchaguru'>Captchaguru</a> ключ(необязательно) 
 
 <h2 name='captchaguru'>Получение captchaguru ключа</h2>
 <h3>Данный ключ нужен в случае появления капчи при активации пинкодов</h3>
