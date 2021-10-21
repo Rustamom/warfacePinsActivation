@@ -3,28 +3,8 @@ from lxml import html
 import re
 import base64
 import time
-
-pins = []
-cookies = input('Вставьте куки\n')
-yourServer = input('Введите номер сервера\n')
-yourServer = int(yourServer)
-while yourServer > 3:
-    yourServer = input('Введите номер сервера\n')
-    yourServer = int(yourServer)
-yourCaptchaGuruKey = input('Введите ключ капчагуру\n')
-headers1 = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Accept-Language':'ru-RU'
-}
-
-#Установка кук
-cookies_dict = {}
-allCookies = re.findall(r'\S+;?', cookies)
-for cook in allCookies:
-    nameCookie = re.findall(r'(\S+)=', cook)[0]
-    valueCookie = re.findall(r'=(\S+)', cook)[0]
-    cookies_dict[nameCookie] = valueCookie
+import browser_cookie3
+import os.path
 
 #Функции
 def solveCaptcha(captchaGuruKey):
@@ -51,27 +31,54 @@ def solveCaptcha(captchaGuruKey):
     print('Решил капчу')
 
 def checkErrors():
-    bad_cookies = tree.xpath('//*[@class="error-wrap"]')
-    if bad_cookies:
-        f = open('pins.txt', 'w')
-        for item in pins:
-            f.write("%s" % item)
-        f.close()
-        raise Exception("Закрыт сайт или куки устарели")
-
     savedContent = r.text
     if 'redirect' in savedContent:
+        if yourCaptchaGuruKey == '':
+            raise Exception('Вылезла капча, но ты не ввел ключ')
         solveCaptcha(yourCaptchaGuruKey)
     else:
         errorText = tree.xpath('//*[@class="pin__error"]/text()')
-        f = open('pins.txt', 'w')
-        for item in pins:
-            f.write("%s" % item)
-        f.close()
-        raise Exception(errorText)
+        if errorText[0] == 'Этот пин-код уже активирован':
+            pins.pop(0)
+            myData = pins[0].rstrip()
+            pin = re.findall(r'(\w+)', myData)[0]
+            print(errorText[0] + ': ' + pin)
+        else:
+            f = open('pins.txt', 'w')
+            for item in pins:
+                f.write("%s" % item)
+            f.close()
+            raise Exception(errorText[0])
+
+print('\033[93m' + 'Пожалуйста, убедись что у тебя один и тот же аккаунт в разных браузерах' + '\033[0m')
+time.sleep(3)
+
+if os.path.exists('captchaguruKey.txt'):
+    with open("captchaguruKey.txt", "r") as f:
+        print('Взял ключ из файла captchaguruKey.txt')
+        yourCaptchaGuruKey = f.read()
+else:
+    yourCaptchaGuruKey = input('Введите ключ капчагуру\nПосле ввода ключ будет сохранен в файле captchaguruKey.txt\nОставьте поле пустым, если не хотите, чтобы программа решала капчу\n')
+    with open("captchaguruKey.txt", "w") as f:
+        f.write(yourCaptchaGuruKey)
+
+
+cookies_dict = browser_cookie3.load('ru.warface.com')
+pins = []
+yourServer = input('Введите номер сервера\n')
+yourServer = int(yourServer)
+while (yourServer > 3) or (yourServer < 1):
+    yourServer = input('Введите номер сервера\n')
+    yourServer = int(yourServer)
+headers1 = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'ru-RU'
+}
+
 
 #Активация пинов
-pins=open('pins.txt').readlines()
+pins = open('pins.txt').readlines()
 
 allCredits = 0
 while pins[0] != '':
@@ -110,6 +117,7 @@ while pins[0] != '':
     pins.pop(0)
     allCredits = allCredits + int(countCredits)
     print('Всего активировано кредитов: ' + str(allCredits))
+
 
 f = open('pins.txt', 'w')
 for item in pins:
