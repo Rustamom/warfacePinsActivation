@@ -7,6 +7,7 @@ import browser_cookie3
 import os.path
 
 #Функции
+
 def solveCaptcha(captchaGuruKey):
     headerLocation = ''
     while 'warface' not in headerLocation:
@@ -31,6 +32,14 @@ def solveCaptcha(captchaGuruKey):
     print('Решил капчу')
 
 def checkErrors():
+    bad_cookies = tree.xpath('//*[@class="error-wrap"]')
+    if bad_cookies:
+        f = open('pins.txt', 'w')
+        for item in pins:
+            f.write("%s" % item)
+        f.close()
+        raise Exception("Закрыт сайт или куки устарели")
+
     savedContent = r.text
     if 'redirect' in savedContent:
         if yourCaptchaGuruKey == '':
@@ -50,9 +59,6 @@ def checkErrors():
             f.close()
             raise Exception(errorText[0])
 
-print('\033[93m' + 'Пожалуйста, убедись что у тебя один и тот же аккаунт в разных браузерах' + '\033[0m')
-time.sleep(3)
-
 if os.path.exists('captchaguruKey.txt'):
     with open("captchaguruKey.txt", "r") as f:
         print('Взял ключ из файла captchaguruKey.txt')
@@ -62,8 +68,25 @@ else:
     with open("captchaguruKey.txt", "w") as f:
         f.write(yourCaptchaGuruKey)
 
+browser = (input('Введите ваш браузер из списка(chrome, firefox, opera(не GX), edge, другой)\n')).lower()
+if browser == 'другой':
+    cookies = input('Вставьте куки\n')
+    # Установка кук
+    cookies_dict = {}
+    allCookies = re.findall(r'\S+;?', cookies)
+    for cook in allCookies:
+        nameCookie = re.findall(r'(\S+)=', cook)[0]
+        valueCookie = re.findall(r'=(\S+)', cook)[0]
+        cookies_dict[nameCookie] = valueCookie
+elif browser == 'opera':
+    cookies_dict = browser_cookie3.opera(domain_name='ru.warface.com')
+elif browser == 'chrome':
+    cookies_dict = browser_cookie3.chrome(domain_name='ru.warface.com')
+elif browser == 'firefox':
+    cookies_dict = browser_cookie3.firefox(domain_name='ru.warface.com')
+elif browser == 'edge':
+    cookies_dict = browser_cookie3.edge(domain_name='ru.warface.com')
 
-cookies_dict = browser_cookie3.load('ru.warface.com')
 pins = []
 yourServer = input('Введите номер сервера\n')
 yourServer = int(yourServer)
