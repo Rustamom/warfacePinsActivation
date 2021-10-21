@@ -37,7 +37,7 @@
 ![image](https://user-images.githubusercontent.com/48911064/137767648-bec12a09-6a62-4050-a35c-e8f772566a3f.png)
 <br>
 Переходим во вкладку заголовки(headers)<br>![image](https://user-images.githubusercontent.com/48911064/137769461-7d5242d2-60eb-4496-867a-c687e920be8d.png)<br>
-находим заголовок запросов 'Cookie' и копируем его: ПКМ-Копировать значение (ctrl+c не работает)<br>
+Листаем вниз и находим заголовок запросов 'Cookie' и копируем его: ПКМ-Копировать значение (ctrl+c не работает)<br>
 Вставляем его в программу
 
 <h2 name='captchaguru'>Получение captchaguru ключа</h2>
