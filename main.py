@@ -9,6 +9,7 @@ import os.path
 #Функции
 
 def solveCaptcha(captchaGuruKey):
+    print('Решаю капчу')
     headerLocation = ''
     while 'warface' not in headerLocation:
         r = requests.get('https://ru.warface.com/validate/c/0', headers=headers1, cookies=cookies_dict)
@@ -38,10 +39,9 @@ def checkErrors():
         for item in pins:
             f.write("%s" % item)
         f.close()
-        raise Exception("Закрыт сайт или куки устарели")
+        raise Exception("Закрыт сайт или куки устарели. Обнови страницу")
 
-    savedContent = r.text
-    if 'redirect' in savedContent:
+    if r.status_code == 302:
         if yourCaptchaGuruKey == '':
             raise Exception('Вылезла капча, но ты не ввел ключ')
         solveCaptcha(yourCaptchaGuruKey)
@@ -112,7 +112,7 @@ while pins[0] != '':
     payload = {
         'pin': pin
     }
-    r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict, data=payload)
+    r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict, data=payload, allow_redirects=False)
     tree = html.fromstring(r.content)
     profile_id = tree.xpath('//*[@class="pin__server-item"][' + str(yourServer) + ']/input/@id')
     while not profile_id:
