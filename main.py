@@ -103,6 +103,9 @@ headers1 = {
 #Активация пинов
 pins = open('pins.txt').readlines()
 
+if not pins:
+    raise Exception('Нет пинов в файле pins.txt')
+    
 allCredits = 0
 while pins[0] != '':
     myData = pins[0].rstrip()
