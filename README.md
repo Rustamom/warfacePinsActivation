@@ -31,7 +31,7 @@
 
 
 
-<h2 name='cookie'>Получение cookie-файлов</h2>
+<h2 name='cookie'>Получение cookie</h2>
 <h3>Вся информация представлена для браузера google chrome</h3>
 <br><br>
 
