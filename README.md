@@ -36,12 +36,14 @@
 <br><br>
 
 Заходим на сайт warface. Открываем инструменты разработчика(обычно ctrl+shift+i)
-, переходим во вкладку сеть(network)![image](https://user-images.githubusercontent.com/48911064/137767184-a7a95625-b618-44ee-9cf8-85766db5495c.png)<br> и обновляем страницу. Находим url(в самом верху страницы) 
+, переходим во вкладку сеть(network)
+![image](https://user-images.githubusercontent.com/48911064/137767184-a7a95625-b618-44ee-9cf8-85766db5495c.png)<br>
+Обновляем страницу. Находим url: ru.warface.com(в самом верху страницы) 
 <br>
 ![image](https://user-images.githubusercontent.com/48911064/137767648-bec12a09-6a62-4050-a35c-e8f772566a3f.png)
 <br>
 Переходим во вкладку заголовки(headers)<br>![image](https://user-images.githubusercontent.com/48911064/137769461-7d5242d2-60eb-4496-867a-c687e920be8d.png)<br>
-Листаем вниз и находим заголовок запросов 'Cookie' и копируем его: ПКМ-Копировать значение (ctrl+c не работает)<br>
+Листаем вниз и находим заголовок запросов(request headers) 'Cookie' и копируем его: ПКМ-Копировать значение (ctrl+c не работает)<br>
 Вставляем его в программу
 
 <h2 name='captchaguru'>Получение captchaguru ключа</h2>
