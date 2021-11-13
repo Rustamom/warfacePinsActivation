@@ -1,3 +1,4 @@
+import sys
 import requests
 from lxml import html
 import re
@@ -5,9 +6,11 @@ import base64
 import time
 import browser_cookie3
 import os.path
-
-#Функции
-
+import colorama
+from colorama import Fore, Style
+colorama.init()
+# Функции
+sys.tracebacklimit = 0
 def solveCaptcha(captchaGuruKey):
     print('Решаю капчу')
     headerLocation = ''
@@ -20,15 +23,16 @@ def solveCaptcha(captchaGuruKey):
         files = {'file': open('captcha.png', 'rb')}
         payload = {'key': captchaGuruKey, 'method': 'post'}
         r = requests.post('http://api.captcha.guru/in.php', files=files, data=payload)
-        captchaId = r.text[r.text.find('|')+1:]
+        captchaId = r.text[r.text.find('|') + 1:]
         captchaAnswer = 'CAPCHA_NOT_READY'
         while captchaAnswer == 'CAPCHA_NOT_READY':
             time.sleep(6)
             r = requests.get('http://api.captcha.guru/res.php?key=' + captchaGuruKey + '&action=get&id=' + captchaId)
             captchaAnswer = r.text
-        captchaCode = (r.text[r.text.find('|')+1:])
+        captchaCode = (r.text[r.text.find('|') + 1:])
 
-        r = requests.get('https://ru.warface.com/validate/process.php?captcha_input=' + captchaCode, headers=headers1, cookies=cookies_dict, allow_redirects=False)
+        r = requests.get('https://ru.warface.com/validate/process.php?captcha_input=' + captchaCode, headers=headers1,
+                         cookies=cookies_dict, allow_redirects=False)
         headerLocation = r.headers['Location']
     print('Решил капчу')
 
@@ -39,11 +43,11 @@ def checkErrors():
         for item in pins:
             f.write("%s" % item)
         f.close()
-        raise Exception("Закрыт сайт или куки устарели. Обнови страницу")
+        raise Exception(Fore.RED + "Закрыт сайт или куки устарели. Обнови страницу")
 
     if r.status_code == 302:
         if yourCaptchaGuruKey == '':
-            raise Exception('Вылезла капча, но ты не ввел ключ')
+            raise Exception(Fore.RED + 'Вылезла капча, но ты не ввел ключ')
         solveCaptcha(yourCaptchaGuruKey)
     else:
         errorText = tree.xpath('//*[@class="pin__error"]/text()')
@@ -57,14 +61,16 @@ def checkErrors():
             for item in pins:
                 f.write("%s" % item)
             f.close()
-            raise Exception(errorText[0])
+            raise Exception(Fore.RED + errorText[0])
+
 
 if os.path.exists('captchaguruKey.txt'):
     with open("captchaguruKey.txt", "r") as f:
         print('Взял ключ из файла captchaguruKey.txt')
         yourCaptchaGuruKey = f.read()
 else:
-    yourCaptchaGuruKey = input('Введите ключ капчагуру\nПосле ввода ключ будет сохранен в файле captchaguruKey.txt\nОставьте поле пустым, если не хотите, чтобы программа решала капчу\n')
+    yourCaptchaGuruKey = input(
+        'Введите ключ капчагуру\nПосле ввода ключ будет сохранен в файле captchaguruKey.txt\nОставьте поле пустым, если не хотите, чтобы программа решала капчу\n')
     with open("captchaguruKey.txt", "w") as f:
         f.write(yourCaptchaGuruKey)
 
@@ -99,13 +105,12 @@ headers1 = {
     'Accept-Language': 'ru-RU'
 }
 
-
-#Активация пинов
+# Активация пинов
 pins = open('pins.txt').readlines()
 
 if not pins:
-    raise Exception('Нет пинов в файле pins.txt')
-    
+    raise Exception(Fore.RED + 'Нет пинов в файле pins.txt')
+
 allCredits = 0
 while pins[0] != '':
     myData = pins[0].rstrip()
@@ -115,35 +120,38 @@ while pins[0] != '':
     payload = {
         'pin': pin
     }
-    r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict, data=payload, allow_redirects=False)
+    r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict,
+                      data=payload, allow_redirects=False)
     tree = html.fromstring(r.content)
     profile_id = tree.xpath('//*[@class="pin__server-item"][' + str(yourServer) + ']/input/@id')
     while not profile_id:
         checkErrors()
-        r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict, data=payload)
+        r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict,
+                          data=payload)
         tree = html.fromstring(r.content)
         profile_id = tree.xpath('//*[@class="pin__server-item"][' + str(yourServer) + ']/input/@id')
 
     payload = {
         'pin': pin,
-        'shard_id':'1',
-        'profile_id':profile_id,
-        'item':''
+        'shard_id': '1',
+        'profile_id': profile_id,
+        'item': ''
     }
-    r = requests.post("https://ru.warface.com/dynamic/pin/?a=submit", headers=headers1, cookies=cookies_dict, data=payload)
+    r = requests.post("https://ru.warface.com/dynamic/pin/?a=submit", headers=headers1, cookies=cookies_dict,
+                      data=payload)
     tree = html.fromstring(r.content)
     pinSuccess = tree.xpath('//*[@class="pin__success"]')
 
     while not pinSuccess:
         checkErrors()
-        r = requests.post("https://ru.warface.com/dynamic/pin/?a=submit", headers=headers1, cookies=cookies_dict, data=payload)
+        r = requests.post("https://ru.warface.com/dynamic/pin/?a=submit", headers=headers1, cookies=cookies_dict,
+                          data=payload)
         tree = html.fromstring(r.content)
         pinSuccess = tree.xpath('//*[@class="pin__success"]')
 
     pins.pop(0)
     allCredits = allCredits + int(countCredits)
     print('Всего активировано кредитов: ' + str(allCredits))
-
 
 f = open('pins.txt', 'w')
 for item in pins:
