@@ -108,7 +108,7 @@ headers1 = {
 # Активация пинов
 pins = open('pins.txt').readlines()
 
-if not pins:
+if not pins or pins[0] == '\n':
     raise Exception(Fore.RED + 'Нет пинов в файле pins.txt')
 
 allCredits = 0
