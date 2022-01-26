@@ -191,3 +191,4 @@ for item in pins:
     f.write("%s" % item)
 f.close()
 print('Закончил активацию пинов')
+input("Press ENTER to exit.")
