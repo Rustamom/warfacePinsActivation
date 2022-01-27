@@ -1,4 +1,5 @@
 import sys
+import linecache
 import requests
 from lxml import html
 import re
@@ -19,9 +20,11 @@ def rewriteFilePins():
     for item in pins:
         f.write("%s" % item)
     f.close()
-def show_exception_and_exit(exc_type, exc_value, tb):
+def show_exception_and_exit(exc_type, exc_value, exc_traceback):
     import traceback
-    traceback.print_exception(exc_type, exc_value, tb)
+    #traceback.print_exception(exc_type, exc_value, exc_traceback.tb_lineno)
+
+    print(Fore.RED + 'Непредвиденная ошибка "' + str(exc_value) + '" в строке ' + str(exc_traceback.tb_lineno))
     input("Press ENTER to exit.")
     sys.exit(-1)
 def solveCaptcha(captchaGuruKey):
@@ -81,11 +84,8 @@ def checkErrors():
             rewriteFilePins()
             print(Fore.RED + errorText[0])
             time.sleep(3601)
-
 sys.tracebacklimit = 0
 sys.excepthook = show_exception_and_exit
-
-
 
 if os.path.exists('captchaguruKey.txt'):
     with open("captchaguruKey.txt", "r") as f:
@@ -157,6 +157,7 @@ while pins and pins[0] != '\n':
     profile_id = tree.xpath('//*[@class="pin__server-item"][' + str(yourServer) + ']/input/@id')
     while not profile_id and pin != '':
         checkErrors()
+        payload = {'pin': pin}
         r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict,
                           data=payload)
         tree = html.fromstring(r.content)
