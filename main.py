@@ -1,18 +1,18 @@
-import sys
-import linecache
-import requests
-from lxml import html
-import re
-import base64
-import time
 try:
     import browser_cookie3
     browsercookieInstalled = True
 except:
     browsercookieInstalled = False
+from datetime import datetime
+import sys
+import requests
+from lxml import html
+import re
+import base64
+import time
 import os.path
 import colorama
-from colorama import Fore, Style
+from colorama import Fore
 colorama.init()
 # Функции
 def rewriteFilePins():
@@ -21,10 +21,7 @@ def rewriteFilePins():
         f.write("%s" % item)
     f.close()
 def show_exception_and_exit(exc_type, exc_value, exc_traceback):
-    import traceback
-    #traceback.print_exception(exc_type, exc_value, exc_traceback.tb_lineno)
-
-    print(Fore.RED + 'Непредвиденная ошибка "' + str(exc_value) + '" в строке ' + str(exc_traceback.tb_lineno))
+    print(Fore.RED + 'Ошибка "' + str(exc_value) + '" в строке ' + str(exc_traceback.tb_lineno))
     input("Press ENTER to exit.")
     sys.exit(-1)
 def solveCaptcha(captchaGuruKey):
@@ -47,7 +44,8 @@ def solveCaptcha(captchaGuruKey):
             time.sleep(6)
             r = requests.get('http://api.captcha.guru/res.php?key=' + captchaGuruKey + '&action=get&id=' + captchaId)
             captchaAnswer = r.text
-        if captchaAnswer == 'ERROR_WRONG_USER_KEY': raise Exception(Fore.RED + "Неверный ключ капчагуру")
+        if captchaAnswer == 'ERROR_WRONG_USER_KEY':
+            raise Exception(Fore.RED + "Неверный ключ капчагуру")
         captchaCode = (r.text[r.text.find('|') + 1:])
 
         r = requests.get('https://ru.warface.com/validate/process.php?captcha_input=' + captchaCode, headers=headers1,
@@ -82,7 +80,7 @@ def checkErrors():
                 pin = ''
         else:
             rewriteFilePins()
-            print(Fore.RED + errorText[0])
+            print(Fore.RED + datetime.now().strftime("%H:%M:%S ") + errorText[0] + '.Продолжу через час, но будет ошибка')
             time.sleep(3601)
 sys.tracebacklimit = 0
 sys.excepthook = show_exception_and_exit
@@ -99,11 +97,11 @@ else:
 cookies_dict = {}
 while cookies_dict == {}:
     if browsercookieInstalled:
-        #browser = 'chrome'
-        browser = (input('Введите ваш браузер из списка(chrome, firefox, opera(не GX), edge, другой)\n')).lower()
+        browser = (input('Введите ваш браузер из списка(chrome, firefox, opera(не GX), operaGX, яндекс, edge, другой)\n')).lower()
     else:
         print('Модуль browser_cookie3 не был установлен. Доступен только ручной ввод куки')
         browser = 'другой'
+
     if browser == 'другой':
         cookies = input('Вставьте куки\n')
         # Установка кук
@@ -115,6 +113,14 @@ while cookies_dict == {}:
                 cookies_dict[nameCookie] = valueCookie
         except:
             print('Неверно вставил куки')
+    elif browser == 'operagx':
+        cookies_dict = browser_cookie3.opera(cookie_file=os.path.join(
+                    os.getenv('APPDATA', '')) + '\\..\\Roaming\\Opera Software\\Opera GX Stable\\Cookies', key_file=os.path.join(
+                    os.getenv('APPDATA', '')) + '\\..\\Roaming\\Opera Software\\Opera GX Stable\\Local State',)
+    elif browser == 'яндекс':
+        cookies_dict = browser_cookie3.opera(cookie_file=os.path.join(
+            os.getenv('APPDATA', '')) + '\\..\\Local\\Yandex\\YandexBrowser\\User Data\\Default\\Cookies', key_file=os.path.join(
+            os.getenv('APPDATA', '')) + '\\..\\Local\\Yandex\\YandexBrowser\\User Data\\Local State', )
     elif browser == 'opera':
         cookies_dict = browser_cookie3.opera(domain_name='ru.warface.com')
     elif browser == 'chrome':
