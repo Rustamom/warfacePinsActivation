@@ -4,9 +4,10 @@ try:
 except:
     browsercookieInstalled = False
 from datetime import datetime
+import json
+from jsonpath_ng import jsonpath, parse
 import sys
 import requests
-from lxml import html
 import re
 import base64
 import time
@@ -21,6 +22,7 @@ def rewriteFilePins():
         f.write("%s" % item)
     f.close()
 def show_exception_and_exit(exc_type, exc_value, exc_traceback):
+    rewriteFilePins()
     print(Fore.RED + 'Ошибка "' + str(exc_value) + '" в строке ' + str(exc_traceback.tb_lineno))
     input("Press ENTER to exit.")
     sys.exit(-1)
@@ -30,7 +32,8 @@ def solveCaptcha(captchaGuruKey):
     cycle_index = 0
     while 'warface' not in headerLocation:
         print('Попытка ' + str(cycle_index))
-        r = requests.get('https://ru.warface.com/validate/c/0', headers=headers1, cookies=cookies_dict)
+
+        r = requests.get('https://ru.warface.com/validate/c/0?v=0', headers=headers1, cookies=cookies_dict)
         image = base64.b64encode(r.content)
         with open("captcha.png", "wb") as fh:
             fh.write(base64.decodebytes(image))
@@ -51,25 +54,23 @@ def solveCaptcha(captchaGuruKey):
         r = requests.get('https://ru.warface.com/validate/process.php?captcha_input=' + captchaCode, headers=headers1,
                          cookies=cookies_dict, allow_redirects=False)
         headerLocation = r.headers['Location']
-        print(captchaCode)
         cycle_index += 1
     print('Решил капчу')
 def checkErrors():
-    bad_cookies = tree.xpath('//*[@class="error-wrap"]')
-    if bad_cookies:
-        rewriteFilePins()
-        raise Exception(Fore.RED + "Закрыт сайт или куки устарели. Обнови страницу")
-
-    if r.status_code == 302:
+    if r.status_code != 200:
         if yourCaptchaGuruKey == '':
             rewriteFilePins()
             raise Exception(Fore.RED + 'Вылезла капча, но ты не ввел ключ')
         solveCaptcha(yourCaptchaGuruKey)
     else:
-        errorText = tree.xpath('//*[@class="pin__error"]/text()')
+        json_data = json.loads(r.text)
+        messageError = parse('$.error.message').find(json_data)[0].value
+        if messageError == 'Для активации пин-кода необходимо войти в систему!':
+            rewriteFilePins()
+            raise Exception(Fore.RED + "Закрыт сайт или куки устарели. Обнови страницу")
         global cycle_index
         cycle_index += 1
-        if errorText[0] == 'Этот пин-код уже активирован':
+        if messageError == 'Этот пин-код уже активирован':
             global pin
             print(str(cycle_index) + '.Этот пин-код уже активирован' + ': ' + pin)
             pins.pop(0)
@@ -80,7 +81,7 @@ def checkErrors():
                 pin = ''
         else:
             rewriteFilePins()
-            print(Fore.RED + datetime.now().strftime("%H:%M:%S ") + errorText[0] + '.Продолжу через час, но будет ошибка')
+            print(Fore.RED + datetime.now().strftime("%H:%M:%S ") + messageError)
             time.sleep(3601)
 sys.tracebacklimit = 0
 sys.excepthook = show_exception_and_exit
@@ -97,7 +98,8 @@ else:
 cookies_dict = {}
 while cookies_dict == {}:
     if browsercookieInstalled:
-        browser = (input('Введите ваш браузер из списка(chrome, firefox, opera(не GX), operaGX, яндекс, edge, другой)\n')).lower()
+        #browser = (input('Введите ваш браузер из списка(chrome, firefox, opera(не GX), operaGX, яндекс, edge, другой)\n')).lower()
+        browser = 'chrome'
     else:
         print('Модуль browser_cookie3 не был установлен. Доступен только ручной ввод куки')
         browser = 'другой'
@@ -116,22 +118,26 @@ while cookies_dict == {}:
     elif browser == 'operagx':
         cookies_dict = browser_cookie3.opera(cookie_file=os.path.join(
                     os.getenv('APPDATA', '')) + '\\..\\Roaming\\Opera Software\\Opera GX Stable\\Cookies', key_file=os.path.join(
-                    os.getenv('APPDATA', '')) + '\\..\\Roaming\\Opera Software\\Opera GX Stable\\Local State',)
+                    os.getenv('APPDATA', '')) + '\\..\\Roaming\\Opera Software\\Opera GX Stable\\Local State',
+                                             domain_name='warface.com')
     elif browser == 'яндекс':
         cookies_dict = browser_cookie3.opera(cookie_file=os.path.join(
             os.getenv('APPDATA', '')) + '\\..\\Local\\Yandex\\YandexBrowser\\User Data\\Default\\Cookies', key_file=os.path.join(
-            os.getenv('APPDATA', '')) + '\\..\\Local\\Yandex\\YandexBrowser\\User Data\\Local State', )
+            os.getenv('APPDATA', '')) + '\\..\\Local\\Yandex\\YandexBrowser\\User Data\\Local State',
+                                             domain_name='warface.com')
     elif browser == 'opera':
-        cookies_dict = browser_cookie3.opera(domain_name='ru.warface.com')
+        cookies_dict = browser_cookie3.opera(domain_name='warface.com')
     elif browser == 'chrome':
         cookies_dict = browser_cookie3.chrome(cookie_file=os.path.join(
-                    os.getenv('APPDATA', '')) + '\\..\\Local\\Google\\Chrome\\User Data\\Default\\Network\\Cookies', domain_name='ru.warface.com')
+                    os.getenv('APPDATA', '')) + '\\..\\Local\\Google\\Chrome\\User Data\\Default\\Network\\Cookies',
+                                              domain_name='warface.com')
     elif browser == 'firefox':
-        cookies_dict = browser_cookie3.firefox(domain_name='ru.warface.com')
+        cookies_dict = browser_cookie3.firefox(domain_name='warface.com')
     elif browser == 'edge':
-        cookies_dict = browser_cookie3.edge(domain_name='ru.warface.com')
+        cookies_dict = browser_cookie3.edge(domain_name='warface.com')
 pins = []
-yourServer = input('Введите номер сервера\n')
+#yourServer = input('Введите номер сервера\n')
+yourServer = 1
 yourServer = int(yourServer)
 while (yourServer > 3) or (yourServer < 1):
     yourServer = input('Введите номер сервера\n')
@@ -150,52 +156,62 @@ if not pins or pins[0] == '\n':
 
 allCredits = 0
 cycle_index = 0
+
 while pins and pins[0] != '\n':
     myData = pins[0].rstrip()
     pin = myData.split(':')[0]
     countCredits = myData.split(':')[1]
 
     payload = {'pin': pin}
-    r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict,
+    r = requests.post("https://ru.warface.com/dynamic/pin/?a=check_pin", headers=headers1, cookies=cookies_dict,
                       data=payload, allow_redirects=False)
-    t = r.text
-    tree = html.fromstring(r.content)
-    profile_id = tree.xpath('//*[@class="pin__server-item"][' + str(yourServer) + ']/input/@id')
-    while not profile_id and pin != '':
+
+    try:
+        json_data = json.loads(r.text)
+        pinSuccess = parse('$.success').find(json_data)[0].value
+    except:
+        pinSuccess = False
+    while not pinSuccess and pin != '':
         checkErrors()
         payload = {'pin': pin}
-        r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate", headers=headers1, cookies=cookies_dict,
-                          data=payload)
-        tree = html.fromstring(r.content)
-        profile_id = tree.xpath('//*[@class="pin__server-item"][' + str(yourServer) + ']/input/@id')
+        r = requests.post("https://ru.warface.com/dynamic/pin/?a=check_pin", headers=headers1, cookies=cookies_dict,
+                          data=payload, allow_redirects=False)
+        try:
+            json_data = json.loads(r.text)
+            pinSuccess = parse('$.success').find(json_data)[0].value
+        except:
+            pinSuccess = False
     if pin == '':
         continue
+    json_data = json.loads(r.text)
+    profile_id = parse(f"$..chars.'{yourServer}'..other.id").find(json_data)[0].value
     payload = {
         'pin': pin,
         'shard_id': '1',
         'profile_id': profile_id,
-        'item': ''
     }
-    r = requests.post("https://ru.warface.com/dynamic/pin/?a=submit", headers=headers1, cookies=cookies_dict,
-                      data=payload)
-    tree = html.fromstring(r.content)
-    pinSuccess = tree.xpath('//*[@class="pin__success"]')
-
+    r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate_pin", headers=headers1, cookies=cookies_dict,
+                      data=payload, allow_redirects=False)
+    try:
+        json_data = json.loads(r.text)
+        pinSuccess = parse('$.success').find(json_data)[0].value
+    except:
+        pinSuccess = False
     while not pinSuccess:
         checkErrors()
-        r = requests.post("https://ru.warface.com/dynamic/pin/?a=submit", headers=headers1, cookies=cookies_dict,
-                          data=payload)
-        tree = html.fromstring(r.content)
-        pinSuccess = tree.xpath('//*[@class="pin__success"]')
+        r = requests.post("https://ru.warface.com/dynamic/pin/?a=activate_pin", headers=headers1, cookies=cookies_dict,
+                          data=payload, allow_redirects=False)
+        try:
+            json_data = json.loads(r.text)
+            pinSuccess = parse('$.success').find(json_data)[0].value
+        except:
+            pinSuccess = False
 
     pins.pop(0)
     allCredits = allCredits + int(countCredits)
     cycle_index += 1
     print(str(cycle_index) + '.Всего активировано кредитов: ' + str(allCredits))
 
-f = open('pins.txt', 'w')
-for item in pins:
-    f.write("%s" % item)
-f.close()
+rewriteFilePins()
 print('Закончил активацию пинов')
-input("Press ENTER to exit.")
+input("Нажмите ENTER для выхода.")
