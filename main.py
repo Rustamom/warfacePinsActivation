@@ -98,8 +98,7 @@ else:
 cookies_dict = {}
 while cookies_dict == {}:
     if browsercookieInstalled:
-        #browser = (input('Введите ваш браузер из списка(chrome, firefox, opera(не GX), operaGX, яндекс, edge, другой)\n')).lower()
-        browser = 'chrome'
+        browser = (input('Введите ваш браузер из списка(chrome, firefox, opera(не GX), operaGX, яндекс, edge, другой)\n')).lower()
     else:
         print('Модуль browser_cookie3 не был установлен. Доступен только ручной ввод куки')
         browser = 'другой'
@@ -136,8 +135,7 @@ while cookies_dict == {}:
     elif browser == 'edge':
         cookies_dict = browser_cookie3.edge(domain_name='warface.com')
 pins = []
-#yourServer = input('Введите номер сервера\n')
-yourServer = 1
+yourServer = input('Введите номер сервера\n')
 yourServer = int(yourServer)
 while (yourServer > 3) or (yourServer < 1):
     yourServer = input('Введите номер сервера\n')
