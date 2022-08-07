@@ -82,7 +82,7 @@ def checkErrors():
                 pin = ''
         else:
             rewriteFilePins()
-            print(Fore.RED + datetime.now().strftime("%H:%M:%S ") + messageError)
+            print(Fore.RED + datetime.now().strftime("%H:%M:%S ") + messageError + Fore.RESET)
             time.sleep(3601)
             requests.get("https://ru.warface.com/dynamic/auth/?a=checkuser", headers=headers1, cookies=cookies_dict,
                          allow_redirects=False)
