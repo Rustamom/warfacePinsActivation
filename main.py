@@ -23,7 +23,7 @@ def rewriteFilePins():
     f.close()
 def show_exception_and_exit(exc_type, exc_value, exc_traceback):
     rewriteFilePins()
-    print(Fore.RED + 'Ошибка "' + str(exc_value) + '" в строке ' + str(exc_traceback.tb_lineno))
+    print(Fore.RED + f'Ошибка {str(exc_value)} в строке {str(exc_traceback.tb_lineno)}')
     input("Press ENTER to exit.")
     sys.exit(-1)
 def solveCaptcha(captchaGuruKey):
@@ -67,7 +67,8 @@ def checkErrors():
         messageError = parse('$.error.message').find(json_data)[0].value
         if messageError == 'Для активации пин-кода необходимо войти в систему!':
             rewriteFilePins()
-            raise Exception(Fore.RED + "Закрыт сайт или куки устарели. Обнови страницу")
+            requests.get("https://ru.warface.com/dynamic/auth/?a=checkuser", headers=headers1, cookies=cookies_dict, allow_redirects=False)
+            return
         global cycle_index
         cycle_index += 1
         if messageError == 'Этот пин-код уже активирован':
@@ -83,6 +84,9 @@ def checkErrors():
             rewriteFilePins()
             print(Fore.RED + datetime.now().strftime("%H:%M:%S ") + messageError)
             time.sleep(3601)
+            requests.get("https://ru.warface.com/dynamic/auth/?a=checkuser", headers=headers1, cookies=cookies_dict,
+                         allow_redirects=False)
+
 sys.tracebacklimit = 0
 sys.excepthook = show_exception_and_exit
 
@@ -155,6 +159,7 @@ if not pins or pins[0] == '\n':
 allCredits = 0
 cycle_index = 0
 
+r = requests.get("https://ru.warface.com/dynamic/auth/?a=checkuser", headers=headers1, cookies=cookies_dict, allow_redirects=False)
 while pins and pins[0] != '\n':
     myData = pins[0].rstrip()
     pin = myData.split(':')[0]
