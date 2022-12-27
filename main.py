@@ -198,7 +198,6 @@ class MainApp(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
 
     def pinsActivation(self):
-        raise Exception('123')
         if self.cbxNicknames.currentText() == '':
             QtWidgets.QMessageBox.about(self, 'Error', 'Ты не выбрал никнейм')
             return
